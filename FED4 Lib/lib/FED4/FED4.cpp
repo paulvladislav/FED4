@@ -1277,7 +1277,10 @@ void FED4::well_handler() {
         _pellet_in_well = false;
     }
 #else 
-    _pellet_dropped = true;
+    if (millis() - _last_pellet_t > 100) {
+        _pellet_dropped = true;
+        _last_pellet_t = millis();
+    }
 #endif
 }
 

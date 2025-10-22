@@ -239,6 +239,8 @@ class FED4 {
     volatile bool _interrupt_enabled = true;
     void start_interrupts();
     void pause_interrupts();
+
+    unsigned long _last_pellet_t;
     
     void left_poke_handler();
     void right_poke_handler();
