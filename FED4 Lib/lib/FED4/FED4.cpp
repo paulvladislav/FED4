@@ -65,6 +65,7 @@ void FED4::begin() {
     strip.begin();
     strip.clear();
     strip.show();
+    digitalWrite(FED4Pins::MTR_EN, LOW);
     
     SdFile::dateTimeCallback(dateTime);
     initSD();
@@ -981,7 +982,10 @@ void FED4::setLightCue() {
         digitalWrite(FED4Pins::MTR_EN, HIGH);
         __delay(2);
 
+
+        strip.clear();
         switch (activeSensor) {
+            strip.setPixelColor(9, 5, 2, 0, 0);
         case ActiveSensor::BOTH:
             strip.setPixelColor(8, 5, 2, 0, 0);
             break;
@@ -994,8 +998,6 @@ void FED4::setLightCue() {
             strip.setPixelColor(8, 5, 2, 0, 0);
             break;
         }
-
-        strip.setPixelColor(0, 0, 0, 0, 0);
 
         strip.show();
     } else {
