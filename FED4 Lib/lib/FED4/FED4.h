@@ -259,7 +259,7 @@ class FED4 {
     
     // ==== Watch Dog ====
     WDTZero watch_dog;
-    uint32_t _wtd_timeout = WDT_SOFTCYCLE4M;
+    uint32_t _wtd_timeout = WDT_SOFTCYCLE2M;
     static void wtd_shut_down();
     void wtd_restart();
 };
