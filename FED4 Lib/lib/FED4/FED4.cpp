@@ -107,7 +107,7 @@ void FED4::begin() {
 }
 
 void FED4::run() {
-    setLightCue();
+    // setLightCue();
 
     updateDisplay();    
     

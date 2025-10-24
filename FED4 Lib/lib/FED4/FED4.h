@@ -197,7 +197,7 @@ class FED4 {
     std::function<bool()> checkOtherCondition = nullptr;
     
     bool checkFeedingWindow();
-    void setLightCue();
+    // void setLightCue();
 
     int getViCountDown();
     
