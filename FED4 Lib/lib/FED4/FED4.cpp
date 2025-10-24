@@ -62,9 +62,9 @@ void FED4::begin() {
     
     digitalWrite(FED4Pins::MTR_EN, HIGH);
     __delay(2);
-    strip.begin();
-    strip.clear();
-    strip.show();
+    // strip.begin();
+    // strip.clear();
+    // strip.show();
     digitalWrite(FED4Pins::MTR_EN, LOW);
     
     SdFile::dateTimeCallback(dateTime);
@@ -147,7 +147,7 @@ void FED4::feed(int pellets, bool wait) {
             long deltaT = millis() - startOfFeed;
             if (deltaT < 15000)
             {
-                rotateWheel(1);
+                rotateWheel(5);
             }
             else if (deltaT < 30000)
             {
@@ -188,6 +188,7 @@ void FED4::feed(int pellets, bool wait) {
 
 void FED4::rotateWheel(int degrees) {
     digitalWrite(FED4Pins::MTR_EN, HIGH);
+    __delay(2);
 
     int steps = (STEPS * degrees / 360);
     stepper.step(steps);
@@ -586,6 +587,7 @@ void FED4::logError(String str) {
 
 void FED4::updateDisplay(bool statusOnly) {
     pause_interrupts();
+    
     digitalWrite(FED4Pins::SHRP_CS, LOW);
     digitalWrite(FED4Pins::CARD_SEL, HIGH);
     
@@ -976,40 +978,38 @@ bool FED4::checkFeedingWindow() {
 }
 
 
-void FED4::setLightCue() {
-    pause_interrupts();
-    if (checkFeedingWindow()) {
-        digitalWrite(FED4Pins::MTR_EN, HIGH);
-        __delay(2);
+// void FED4::setLightCue() {
+//     pause_interrupts();
 
+//     digitalWrite(FED4Pins::MTR_EN, HIGH);
+//     __delay(2);
+//     strip.clear();
 
-        strip.clear();
-        switch (activeSensor) {
-            strip.setPixelColor(9, 5, 2, 0, 0);
-        case ActiveSensor::BOTH:
-            strip.setPixelColor(8, 5, 2, 0, 0);
-            break;
+//     if (checkFeedingWindow()) {
+//         switch (activeSensor) {
+//         case ActiveSensor::BOTH:
+//             strip.setPixelColor(8, 5, 2, 0, 0);
+//             strip.setPixelColor(9, 5, 2, 0, 0);
+//             break;
         
-        case ActiveSensor::LEFT:
-            strip.setPixelColor(9, 5, 2, 0, 0);
-            break;
+//         case ActiveSensor::LEFT:
+//             strip.setPixelColor(9, 5, 2, 0, 0);
+//             break;
 
-        case ActiveSensor::RIGHT:
-            strip.setPixelColor(8, 5, 2, 0, 0);
-            break;
-        }
+//         case ActiveSensor::RIGHT:
+//             strip.setPixelColor(8, 5, 2, 0, 0);
+//             break;
+//         }
+//         strip.show();
+//     } 
+//     else {
+//         strip.show();
+//         digitalWrite(FED4Pins::MTR_EN, LOW);
+//     }
 
-        strip.show();
-    } else {
-        digitalWrite(FED4Pins::MTR_EN, HIGH);
-        __delay(2);
-        strip.clear();
-        strip.show();
-        digitalWrite(FED4Pins::MTR_EN, LOW);
-    }
 
-    start_interrupts();
-}
+//     start_interrupts();
+// }
 
 int FED4::getViCountDown() {
     int offset = (float)viAvg * viSpread;
