@@ -1251,7 +1251,7 @@ void FED4::alarm_handler() {
         }
         
         updateDisplay(true);
-        setLightCue();
+        // setLightCue();
         flush_to_sd();
 
         pause_interrupts();
