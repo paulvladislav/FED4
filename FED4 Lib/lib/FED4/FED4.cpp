@@ -90,6 +90,7 @@ void FED4::begin() {
         break;
     case Mode::CHANCE:
         runChanceMenu();
+        get_chance_trials();
         break;
     case Mode::OTHER:
         runOtherModeMenu();
@@ -977,6 +978,45 @@ bool FED4::checkFeedingWindow() {
     return false;
 }
 
+void FED4::get_chance_trials() {
+    if (_reward_trials != nullptr) {
+        delete[] _reward_trials;
+    }
+
+    int gcd = (int)(chance * 100);
+    int n = 100;
+    while (n != 0) {
+        int t = n;
+        n = gcd % n;
+        gcd = t;
+    }
+
+    _n_reward_trials = 100 / gcd;
+    _reward_trials = new bool[_n_reward_trials]{0};
+    _trial_idx = 0;
+
+    int n_rewardedTrials = (int)(chance * 100) / gcd;
+
+    int i = 0;
+    while (n_rewardedTrials > 0) {
+        bool rewarded = random(0, 2);
+        _reward_trials[i] = rewarded;
+        if (rewarded) {
+            n_rewardedTrials--;
+        }
+        i = (i + 1) % n_rewardedTrials;
+        while (_reward_trials[i] == true){
+            i = (i + 1) % _n_reward_trials;
+        }
+    }
+
+    bool a;
+    for (int j = 0; j < _n_reward_trials; j++) {
+        a = _reward_trials[j];
+    }
+    
+    Serial.print(a);
+}
 
 // void FED4::setLightCue() {
 //     pause_interrupts();

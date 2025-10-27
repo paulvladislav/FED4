@@ -53,6 +53,7 @@ namespace Mode {
     constexpr int8_t FR      = 0;
     constexpr int8_t VI      = 1;
     constexpr int8_t CHANCE  = 2;
+    constexpr int8_t VI_PROB = 3;
     constexpr int8_t OTHER   = -1;
 };
 
@@ -85,7 +86,7 @@ namespace ErrorMsg {
 
 
 class FED4 {
-    public:
+public:
     static FED4* instance;  
     
     FED4() :
@@ -204,7 +205,7 @@ class FED4 {
     DateTime getDateTime();
     int getBatteryPercentage();
     
-    private:
+private:
     // ==== InternalFlags ====
     volatile bool _sleep_mode     = false;
     
@@ -226,6 +227,12 @@ class FED4 {
     
     // ==== Internal State ====
     int _reward;
+
+    // Mode Specific
+    bool* _reward_trials = nullptr;
+    uint8_t _n_reward_trials;
+    uint8_t _trial_idx;
+    void get_chance_trials();
     
     // Log Memory
     size_t _log_buffer_pos = 0;
