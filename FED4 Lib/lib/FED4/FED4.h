@@ -102,10 +102,6 @@ public:
     {
         watch_dog.attachShutdown(wtd_shut_down);
 
-        rtc.begin();
-        if (rtc.lostPower()) {
-            rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-        }
         stepper.setSpeed(7);
         
         display.begin();

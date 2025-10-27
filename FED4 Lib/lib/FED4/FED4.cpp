@@ -46,7 +46,12 @@ void FED4::begin() {
     while (GCLK->STATUS.bit.SYNCBUSY);
     
     SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; // Enable deep sleep mode
-    
+
+    rtc.begin();
+    if (rtc.lostPower()) {
+        rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    }
+
     rtcZero.begin();
     rtcZero.setTime(rtc.now().hour(), rtc.now().minute(), rtc.now().second());
     rtcZero.setDate(rtc.now().day(), rtc.now().month(), rtc.now().year() - 2000);
@@ -60,12 +65,12 @@ void FED4::begin() {
     
     randomSeed(rtc.now().unixtime());
     
-    digitalWrite(FED4Pins::MTR_EN, HIGH);
-    __delay(2);
+    // digitalWrite(FED4Pins::MTR_EN, HIGH);
+    // __delay(2);
     // strip.begin();
     // strip.clear();
     // strip.show();
-    digitalWrite(FED4Pins::MTR_EN, LOW);
+    // digitalWrite(FED4Pins::MTR_EN, LOW);
     
     SdFile::dateTimeCallback(dateTime);
     initSD();

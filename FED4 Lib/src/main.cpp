@@ -1,12 +1,8 @@
 #include <FED4.h>
 
-FED4 fed4;
-long lastLogTime = 0;
-int init_freeMem = 0;
+FED4 fed4 = FED4();
 
 void setup() {
-    fed4 = FED4();
-
     fed4.begin();
 }
 
