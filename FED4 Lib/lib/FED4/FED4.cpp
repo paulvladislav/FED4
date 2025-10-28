@@ -983,12 +983,13 @@ bool FED4::checkFeedingWindow() {
     return false;
 }
 
-void FED4::get_chance_trials() {
-    if (_reward_trials != nullptr) {
-        delete[] _reward_trials;
+void FED4::generate_trial_block() {
+    if (_trial_block != nullptr) {
+        delete[] _trial_block;
     }
 
-    int gcd = (int)(chance * 100);
+    int int_chance = (int)round(chance * 100);
+    int gcd = int_chance;
     int n = 100;
     while (n != 0) {
         int t = n;
@@ -996,31 +997,19 @@ void FED4::get_chance_trials() {
         gcd = t;
     }
 
-    _n_reward_trials = 100 / gcd;
-    _reward_trials = new bool[_n_reward_trials]{0};
+    _trial_block_len = 100 / gcd;
+    _trial_block = new bool[_trial_block_len]{0};
     _trial_idx = 0;
 
-    int n_rewardedTrials = (int)(chance * 100) / gcd;
+    int n_rewardedTrials = int_chance / gcd;
 
-    int i = 0;
-    while (n_rewardedTrials > 0) {
-        bool rewarded = random(0, 2);
-        _reward_trials[i] = rewarded;
-        if (rewarded) {
-            n_rewardedTrials--;
+    for (uint8_t i; i < n_rewardedTrials; i++) {
+        uint8_t rewardedTrial_idx = random(0, _trial_block_len);
+        while (_trial_block[rewardedTrial_idx] == true) {
+            rewardedTrial_idx = (rewardedTrial_idx + 1) % _trial_block_len; 
         }
-        i = (i + 1) % n_rewardedTrials;
-        while (_reward_trials[i] == true){
-            i = (i + 1) % _n_reward_trials;
-        }
+        _trial_block[rewardedTrial_idx] = true;
     }
-
-    bool a;
-    for (int j = 0; j < _n_reward_trials; j++) {
-        a = _reward_trials[j];
-    }
-    
-    Serial.print(a);
 }
 
 // void FED4::setLightCue() {

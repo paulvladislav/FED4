@@ -225,10 +225,10 @@ private:
     int _reward;
 
     // Mode Specific
-    bool* _reward_trials = nullptr;
-    uint8_t _n_reward_trials;
+    bool* _trial_block = nullptr;
+    uint8_t _trial_block_len;
     uint8_t _trial_idx;
-    void get_chance_trials();
+    void generate_trial_block();
     
     // Log Memory
     size_t _log_buffer_pos = 0;
