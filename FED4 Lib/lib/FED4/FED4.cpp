@@ -65,12 +65,12 @@ void FED4::begin() {
     
     randomSeed(rtc.now().unixtime());
     
-    // digitalWrite(FED4Pins::MTR_EN, HIGH);
-    // __delay(2);
-    // strip.begin();
-    // strip.clear();
-    // strip.show();
-    // digitalWrite(FED4Pins::MTR_EN, LOW);
+    enable_motor();
+    __delay(2);
+    strip.begin();
+    strip.clear();
+    strip.show();
+    disable_motor();
     
     SdFile::dateTimeCallback(dateTime);
     initSD();
@@ -112,7 +112,7 @@ void FED4::begin() {
 }
 
 void FED4::run() {
-    // setLightCue();
+    setLightCue();
 
     updateDisplay();    
     
@@ -326,7 +326,7 @@ bool FED4::getWellStatus() {
 }
 
 void FED4::initSD() {
-    digitalWrite(FED4Pins::MTR_EN, LOW);
+    disable_motor();
 
     while (!sd.begin(FED4Pins::CARD_SEL, SD_SCK_MHZ(4)))
     {
@@ -983,38 +983,38 @@ bool FED4::checkFeedingWindow() {
 }
 
 
-// void FED4::setLightCue() {
-//     pause_interrupts();
+void FED4::setLightCue() {
+    pause_interrupts();
 
-//     digitalWrite(FED4Pins::MTR_EN, HIGH);
-//     __delay(2);
-//     strip.clear();
+    enable_motor();
+    __delay(2);
+    strip.clear();
 
-//     if (checkFeedingWindow()) {
-//         switch (activeSensor) {
-//         case ActiveSensor::BOTH:
-//             strip.setPixelColor(8, 5, 2, 0, 0);
-//             strip.setPixelColor(9, 5, 2, 0, 0);
-//             break;
+    if (checkFeedingWindow()) {
+        switch (activeSensor) {
+        case ActiveSensor::BOTH:
+            strip.setPixelColor(8, 5, 2, 0, 0);
+            strip.setPixelColor(9, 5, 2, 0, 0);
+            break;
         
-//         case ActiveSensor::LEFT:
-//             strip.setPixelColor(9, 5, 2, 0, 0);
-//             break;
+        case ActiveSensor::LEFT:
+            strip.setPixelColor(9, 5, 2, 0, 0);
+            break;
 
-//         case ActiveSensor::RIGHT:
-//             strip.setPixelColor(8, 5, 2, 0, 0);
-//             break;
-//         }
-//         strip.show();
-//     } 
-//     else {
-//         strip.show();
-//         digitalWrite(FED4Pins::MTR_EN, LOW);
-//     }
+        case ActiveSensor::RIGHT:
+            strip.setPixelColor(8, 5, 2, 0, 0);
+            break;
+        }
+        strip.show();
+    } 
+    else {
+        strip.show();
+        disable_motor();
+    }
 
 
-//     start_interrupts();
-// }
+    start_interrupts();
+}
 
 int FED4::getViCountDown() {
     int offset = (float)viAvg * viSpread;

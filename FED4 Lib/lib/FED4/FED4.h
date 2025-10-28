@@ -96,8 +96,8 @@ class FED4 {
         stepper(
             STEPS, FED4Pins::MTR_1, FED4Pins::MTR_2, 
             FED4Pins::MTR_3, FED4Pins::MTR_4
-        )
-        // strip(10, FED4Pins::NEOPXL, NEO_GRBW + NEO_KHZ800) 
+        ),
+        strip(10, FED4Pins::NEOPXL, NEO_GRBW + NEO_KHZ800) 
     {
         watch_dog.attachShutdown(wtd_shut_down);
 
@@ -116,7 +116,7 @@ class FED4 {
     RTCZero rtcZero;
     Adafruit_SharpMem display;
     Stepper stepper;
-    // Adafruit_NeoPixel strip;
+    Adafruit_NeoPixel strip;
 
     
     // ==== Pulbic Flags ====
@@ -193,7 +193,7 @@ class FED4 {
     std::function<bool()> checkOtherCondition = nullptr;
     
     bool checkFeedingWindow();
-    // void setLightCue();
+    void setLightCue();
 
     int getViCountDown();
     
