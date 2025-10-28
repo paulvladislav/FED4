@@ -222,6 +222,9 @@ class FED4 {
     
     // ==== Internal State ====
     int _reward;
+    bool _motor_en;
+    void enable_motor();
+    void disable_motor();
     
     // Log Memory
     size_t _log_buffer_pos = 0;

@@ -192,13 +192,13 @@ void FED4::feed(int pellets, bool wait) {
 }
 
 void FED4::rotateWheel(int degrees) {
-    digitalWrite(FED4Pins::MTR_EN, HIGH);
+    enable_motor();
     __delay(2);
 
     int steps = (STEPS * degrees / 360);
     stepper.step(steps);
 
-    digitalWrite(FED4Pins::MTR_EN, LOW);
+    disable_motor();
 }
 
 void FED4::loadConfig() {
@@ -351,7 +351,7 @@ void FED4::showSdError() {
 }
 
 void FED4::initLogFile() {   
-    digitalWrite(FED4Pins::MTR_EN, LOW);
+    disable_motor();
     char fileName[30] = "";
 
     DateTime now = getDateTime();
@@ -1171,6 +1171,16 @@ void FED4::write_to_log(char row[ROW_MAX_LEN], bool forceFlush) {
     start_interrupts();
 }
 
+void FED4::enable_motor(){
+    digitalWrite(FED4Pins::MTR_EN, HIGH);
+    _motor_en = true;
+}
+
+void FED4::disable_motor(){
+    digitalWrite(FED4Pins::MTR_EN, LOW);
+    _motor_en = false;
+}
+
 void FED4::start_interrupts() {
     NVIC_DisableIRQ(EIC_IRQn);
     
@@ -1192,6 +1202,10 @@ void FED4::left_poke_handler() {
 
     if (ignorePokes)
         return;
+
+    if (_motor_en) {
+        digitalWrite(FED4Pins::MTR_EN, LOW);
+    }
 
     if (digitalRead(FED4Pins::LFT_POKE) == LOW)
     {
@@ -1216,6 +1230,10 @@ void FED4::left_poke_handler() {
         _left_poke = true;
         _dT_left_poke = 0;
     }
+
+    if (_motor_en) {
+        digitalWrite(FED4Pins::MTR_EN, HIGH);
+    }
 }
 
 void FED4::right_poke_handler() {
@@ -1223,6 +1241,10 @@ void FED4::right_poke_handler() {
 
     if (ignorePokes)
         return;
+
+    if (_motor_en) {
+        digitalWrite(FED4Pins::MTR_EN, LOW);
+    }
 
     if (digitalRead(FED4Pins::RGT_POKE) == LOW)
     {
@@ -1247,10 +1269,18 @@ void FED4::right_poke_handler() {
         _right_poke = true;
         _dT_right_poke = 0;
     }
+
+    if (_motor_en) {
+        digitalWrite(FED4Pins::MTR_EN, HIGH);
+    }
 }
 
 void FED4::alarm_handler() {
     if (_sleep_mode) {
+        if (_motor_en) {
+        digitalWrite(FED4Pins::MTR_EN, LOW);
+    }
+
         if (checkFeedingWindow()) {
             _sleep_mode = false;
         }
@@ -1271,11 +1301,19 @@ void FED4::alarm_handler() {
         
         watch_dog.clear();
 
+        if (_motor_en) {
+            digitalWrite(FED4Pins::MTR_EN, HIGH);
+        }
+
         start_interrupts();
     }
 }
 
 void FED4::well_handler() {
+    if (_motor_en) {
+        digitalWrite(FED4Pins::MTR_EN, LOW);
+    }
+
 #if OLD_WELL
     if(digitalRead(FED4Pins::WELL) == LOW) {
         _pellet_in_well = true;
@@ -1289,6 +1327,10 @@ void FED4::well_handler() {
         _last_pellet_t = millis();
     }
 #endif
+
+    if (_motor_en) {
+        digitalWrite(FED4Pins::MTR_EN, HIGH);
+    }
 }
 
 void FED4::left_poke_IRS() {
