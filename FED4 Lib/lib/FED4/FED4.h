@@ -53,7 +53,7 @@ namespace Mode {
     constexpr int8_t FR      = 0;
     constexpr int8_t VI      = 1;
     constexpr int8_t CHANCE  = 2;
-    constexpr int8_t VI_PROB = 3;
+    constexpr int8_t FR_PROB = 3;
     constexpr int8_t OTHER   = -1;
 };
 
@@ -185,6 +185,7 @@ public:
     void runFRMenu();
     void runVIMenu();
     void runChanceMenu();
+    void runProbFRMenu();
     std::function<void()> runOtherModeMenu = nullptr;
     
     bool checkCondition();

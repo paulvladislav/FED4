@@ -96,6 +96,9 @@ void FED4::begin() {
     case Mode::CHANCE:
         runChanceMenu();
         break;
+    case Mode::FR_PROB:
+        runProbFRMenu();
+        break;
     case Mode::OTHER:
         runOtherModeMenu();
         break;
@@ -221,6 +224,10 @@ void FED4::loadConfig() {
     } else if (config["mode"]["name"] == "CHANCE") {
         mode = Mode::CHANCE;
         chance = config["mode"]["chance"];
+    } else if (config["mode"]["name"] == "FR_PROB") {
+        mode = Mode::FR_PROB;
+        ratio = config["mode"]["ratio"];
+        chance = config["mode"]["chance"];
     }
 
     if (config["active sensor"] == "left") {
@@ -257,16 +264,23 @@ void FED4::saveConfig() {
         config["mode"]["name"] = "FR";
         config["mode"]["ratio"] = ratio;
         break;
-
-    case Mode::VI:
+        
+        case Mode::VI:
         config["mode"]["name"] = "VI";
         config["mode"]["avg"] = viAvg;
         config["mode"]["spread"] = viSpread;
         break;
-
-    case Mode::CHANCE:
+        
+        case Mode::CHANCE:
         config["mode"]["name"] = "CHANCE";
         config["mode"]["chance"] = chance;
+        break;
+
+        case Mode::FR_PROB:
+        config["mode"]["name"] = "FR_PROB";
+        config["mode"]["ratio"] = ratio;
+        config["mode"]["chance"] = chance;
+        break;
     
     default:
         break;
@@ -414,6 +428,10 @@ void FED4::initLogFile() {
     case Mode::CHANCE:
         strcat(header, ",Chance");
         break;
+
+    case Mode::FR_PROB:
+        strcat(header, ",Ratio");
+        strcat(header, ",Chance");
     
     default:
         break;
@@ -461,6 +479,10 @@ void FED4::logEvent(Event e) {
         
     case Mode::CHANCE:
         sprintf(mode_str, "CHANCE");
+        break;
+
+    case Mode::FR_PROB:
+        sprintf(mode_str, "VI PROB");
         break;
 
     default :
@@ -570,6 +592,13 @@ void FED4::logEvent(Event e) {
         strcat(row, ",");
         strcat(row, chance_str);
         break;
+
+    case Mode::FR_PROB:
+        char viProb_str[16];
+        sprintf(viProb_str, "%d,%.2f", ratio, chance);
+        strcat(row, ",");
+        strcat(row, viProb_str);
+        break;
     
     default:
         break;
@@ -635,10 +664,26 @@ void FED4::displayLayout() {
 
     display.setTextSize(1);
     display.setCursor(4, 124);
-    if (mode == Mode::FR)
+    switch (mode) {
+    case Mode::FR:
         display.print("Fixed Ratio");
-    else if (mode == Mode::VI)
+        break;
+
+    case Mode::VI:
         display.print("Variable Interval");
+        break;
+
+    case Mode::CHANCE:
+        display.print("Probabilistic");
+        break;
+
+    case Mode::FR_PROB:
+        display.print("Probabilistic FR");
+        break;
+    
+    default:
+        break;
+    }
     display.setCursor(4, 134);
     char logFileName[30];
     logFile.getName(logFileName, 30);
@@ -759,8 +804,8 @@ void FED4::runConfigMenu() {
     configMenu.add("Time", new ClockMenu());
     configMenu.add("Animal", &animal, 0, 99, 1);
 
-    const char* modes[] = {"FR", "VI", "%"};
-    configMenu.add("Mode", &mode, modes, 3);
+    const char* modes[] = {"FR", "VI", "%", "\%FR"};
+    configMenu.add("Mode", &mode, modes, 4);
 
     const char* sensors[] = {"L", "R", "L&R"};
     configMenu.add("Sensor", &activeSensor, sensors, 3);
@@ -809,6 +854,17 @@ void FED4::runChanceMenu() {
     ignorePokes = false;
 }
 
+void FED4::runProbFRMenu() {
+    ignorePokes = true;
+
+    Menu probFRMenu = Menu();
+    probFRMenu.add("Ratio", &ratio, 1, 10, 1);
+    probFRMenu.add("Chance", &chance, 0.0, 1.0, 0.05);
+    probFRMenu.run();
+
+    ignorePokes = false;
+}
+
 bool FED4::checkCondition() {
     if (feedWindow && !checkFeedingWindow()) {
         return false;
@@ -827,6 +883,17 @@ bool FED4::checkCondition() {
     case Mode::CHANCE:
         conditionMet = checkChanceCondition();
         break;
+
+    case Mode::FR_PROB: {
+        bool pokedLeft = _left_poke;
+        bool pokedRight = _right_poke;
+        if (checkFRCondition()) {
+            _left_poke = pokedLeft;
+            _right_poke = pokedRight;
+            conditionMet = checkChanceCondition;
+        }
+        break;
+    }
     
     default:
         if(checkOtherCondition == nullptr) {
