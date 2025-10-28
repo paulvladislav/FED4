@@ -890,7 +890,7 @@ bool FED4::checkCondition() {
         if (checkFRCondition()) {
             _left_poke = pokedLeft;
             _right_poke = pokedRight;
-            conditionMet = checkChanceCondition;
+            conditionMet = checkChanceCondition();
         }
         break;
     }
