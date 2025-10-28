@@ -95,7 +95,6 @@ void FED4::begin() {
         break;
     case Mode::CHANCE:
         runChanceMenu();
-        get_chance_trials();
         break;
     case Mode::OTHER:
         runOtherModeMenu();
@@ -936,25 +935,47 @@ bool FED4::checkVICondition() {
 }
 
 bool FED4::checkChanceCondition() {
-    int r = random(0, 100);
     if (
-        getLeftPoke()
-        && ( activeSensor == ActiveSensor::LEFT || activeSensor == ActiveSensor::BOTH )
-        && r <= int(chance * 100)
+        _trial_block == nullptr
+        || _trial_idx >= _trial_block_len
     ) {
-        _reward = leftReward;
-        return true;
-    }
-    else if (
-        getRightPoke() 
-        && ( activeSensor == ActiveSensor::RIGHT || activeSensor == ActiveSensor::BOTH ) 
-        && r <= int(chance * 100)
-    ) {
-        _reward = rightReward;
-        return true;
+        generate_trial_block();
     }
 
-    return false;
+    bool conditionMet = false;
+
+    switch (activeSensor) {
+    case ActiveSensor::BOTH:
+        if (getLeftPoke()) {
+            conditionMet = _trial_block[_trial_idx];
+            _trial_idx++;
+            _reward = leftReward;
+        }
+        if (getRightPoke()) {
+            conditionMet = _trial_block[_trial_idx];
+            _trial_idx++;
+            _reward = rightReward;
+        }
+        break;
+        
+        case ActiveSensor::LEFT:
+        if (getLeftPoke()) {
+            conditionMet = _trial_block[_trial_idx];
+            _trial_idx++;
+            _reward = leftReward;
+        }
+        break;
+        
+        case ActiveSensor::RIGHT:
+        if (getRightPoke()) {
+            conditionMet = _trial_block[_trial_idx];
+            _trial_idx++;
+            _reward = rightReward;
+        }
+        break;
+    }
+
+    return conditionMet;
 }
 
 bool FED4::checkFeedingWindow() {
