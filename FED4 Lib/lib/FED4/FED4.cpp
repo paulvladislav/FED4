@@ -885,6 +885,7 @@ bool FED4::checkCondition() {
         break;
 
     case Mode::FR_PROB: {
+        conditionMet = false;
         bool pokedLeft = _left_poke;
         bool pokedRight = _right_poke;
         if (checkFRCondition()) {
@@ -1091,7 +1092,7 @@ void FED4::generate_trial_block() {
 
     int n_rewardedTrials = int_chance / gcd;
 
-    for (uint8_t i; i < n_rewardedTrials; i++) {
+    for (uint8_t i = 0; i < n_rewardedTrials; i++) {
         uint8_t rewardedTrial_idx = random(0, _trial_block_len);
         while (_trial_block[rewardedTrial_idx] == true) {
             rewardedTrial_idx = (rewardedTrial_idx + 1) % _trial_block_len; 
