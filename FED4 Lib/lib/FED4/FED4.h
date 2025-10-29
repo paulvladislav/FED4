@@ -192,6 +192,7 @@ public:
     bool checkFRCondition();
     bool checkVICondition();
     bool checkChanceCondition();
+    bool checkProbVICondition();
     std::function<bool()> checkOtherCondition = nullptr;
     
     bool checkFeedingWindow();

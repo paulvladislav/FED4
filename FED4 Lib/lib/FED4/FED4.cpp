@@ -587,8 +587,7 @@ void FED4::logEvent(Event e) {
         break;
 
     case Mode::CHANCE:
-        char chance_str[8];
-        sprintf(chance_str, "%.2f", chance);
+        char chance_str[10];
         strcat(row, ",");
         strcat(row, chance_str);
         break;
@@ -1042,7 +1041,7 @@ bool FED4::checkChanceCondition() {
         }
         break;
     }
-
+    
     return conditionMet;
 }
 
