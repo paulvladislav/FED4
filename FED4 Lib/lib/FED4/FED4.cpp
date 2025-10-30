@@ -837,15 +837,13 @@ bool FED4::checkFRCondition() {
     bool conditionMet = false;
     switch (activeSensor) {
     case ActiveSensor::BOTH:
-        if ( (leftPokeCount + rightPokeCount) % ratio == 0 ) {
-            if (getLeftPoke()) {
-                _reward = leftReward;
-                conditionMet = true;
-            }
-            if (getRightPoke()) {
-                _reward = rightReward;
-                conditionMet = true;
-            }
+        if ( getLeftPoke() && leftPokeCount % ratio == 0 ) {
+            _reward = leftReward;
+            conditionMet = true;
+        }
+        else if ( getRightPoke() && rightPokeCount % ratio == 0 ){
+            _reward = rightReward;
+            conditionMet = true;
         }
         break;
 
