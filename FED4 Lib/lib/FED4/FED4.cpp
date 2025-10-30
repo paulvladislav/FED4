@@ -46,7 +46,12 @@ void FED4::begin() {
     while (GCLK->STATUS.bit.SYNCBUSY);
     
     SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; // Enable deep sleep mode
-    
+
+    rtc.begin();
+    if (rtc.lostPower()) {
+        rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    }
+
     rtcZero.begin();
     rtcZero.setTime(rtc.now().hour(), rtc.now().minute(), rtc.now().second());
     rtcZero.setDate(rtc.now().day(), rtc.now().month(), rtc.now().year() - 2000);
@@ -60,11 +65,12 @@ void FED4::begin() {
     
     randomSeed(rtc.now().unixtime());
     
-    digitalWrite(FED4Pins::MTR_EN, HIGH);
-    __delay(2);
-    strip.begin();
-    strip.clear();
-    strip.show();
+    // digitalWrite(FED4Pins::MTR_EN, HIGH);
+    // __delay(2);
+    // strip.begin();
+    // strip.clear();
+    // strip.show();
+    // digitalWrite(FED4Pins::MTR_EN, LOW);
     
     SdFile::dateTimeCallback(dateTime);
     initSD();
@@ -106,7 +112,7 @@ void FED4::begin() {
 }
 
 void FED4::run() {
-    setLightCue();
+    // setLightCue();
 
     updateDisplay();    
     
@@ -146,7 +152,7 @@ void FED4::feed(int pellets, bool wait) {
             long deltaT = millis() - startOfFeed;
             if (deltaT < 15000)
             {
-                rotateWheel(1);
+                rotateWheel(5);
             }
             else if (deltaT < 30000)
             {
@@ -187,6 +193,7 @@ void FED4::feed(int pellets, bool wait) {
 
 void FED4::rotateWheel(int degrees) {
     digitalWrite(FED4Pins::MTR_EN, HIGH);
+    __delay(2);
 
     int steps = (STEPS * degrees / 360);
     stepper.step(steps);
@@ -585,6 +592,7 @@ void FED4::logError(String str) {
 
 void FED4::updateDisplay(bool statusOnly) {
     pause_interrupts();
+    
     digitalWrite(FED4Pins::SHRP_CS, LOW);
     digitalWrite(FED4Pins::CARD_SEL, HIGH);
     
@@ -975,39 +983,38 @@ bool FED4::checkFeedingWindow() {
 }
 
 
-void FED4::setLightCue() {
-    pause_interrupts();
-    if (checkFeedingWindow()) {
-        digitalWrite(FED4Pins::MTR_EN, HIGH);
-        __delay(2);
+// void FED4::setLightCue() {
+//     pause_interrupts();
 
-        switch (activeSensor) {
-        case ActiveSensor::BOTH:
-            strip.setPixelColor(8, 5, 2, 0, 0);
-            break;
+//     digitalWrite(FED4Pins::MTR_EN, HIGH);
+//     __delay(2);
+//     strip.clear();
+
+//     if (checkFeedingWindow()) {
+//         switch (activeSensor) {
+//         case ActiveSensor::BOTH:
+//             strip.setPixelColor(8, 5, 2, 0, 0);
+//             strip.setPixelColor(9, 5, 2, 0, 0);
+//             break;
         
-        case ActiveSensor::LEFT:
-            strip.setPixelColor(9, 5, 2, 0, 0);
-            break;
+//         case ActiveSensor::LEFT:
+//             strip.setPixelColor(9, 5, 2, 0, 0);
+//             break;
 
-        case ActiveSensor::RIGHT:
-            strip.setPixelColor(8, 5, 2, 0, 0);
-            break;
-        }
+//         case ActiveSensor::RIGHT:
+//             strip.setPixelColor(8, 5, 2, 0, 0);
+//             break;
+//         }
+//         strip.show();
+//     } 
+//     else {
+//         strip.show();
+//         digitalWrite(FED4Pins::MTR_EN, LOW);
+//     }
 
-        strip.setPixelColor(0, 0, 0, 0, 0);
 
-        strip.show();
-    } else {
-        digitalWrite(FED4Pins::MTR_EN, HIGH);
-        __delay(2);
-        strip.clear();
-        strip.show();
-        digitalWrite(FED4Pins::MTR_EN, LOW);
-    }
-
-    start_interrupts();
-}
+//     start_interrupts();
+// }
 
 int FED4::getViCountDown() {
     int offset = (float)viAvg * viSpread;
@@ -1249,7 +1256,7 @@ void FED4::alarm_handler() {
         }
         
         updateDisplay(true);
-        setLightCue();
+        // setLightCue();
         flush_to_sd();
 
         pause_interrupts();
@@ -1277,7 +1284,10 @@ void FED4::well_handler() {
         _pellet_in_well = false;
     }
 #else 
-    _pellet_dropped = true;
+    if (millis() - _last_pellet_t > 100) {
+        _pellet_dropped = true;
+        _last_pellet_t = millis();
+    }
 #endif
 }
 
