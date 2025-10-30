@@ -96,15 +96,11 @@ class FED4 {
         stepper(
             STEPS, FED4Pins::MTR_1, FED4Pins::MTR_2, 
             FED4Pins::MTR_3, FED4Pins::MTR_4
-        ),
-        strip(10, FED4Pins::NEOPXL, NEO_GRBW + NEO_KHZ800) 
+        )
+        // strip(10, FED4Pins::NEOPXL, NEO_GRBW + NEO_KHZ800) 
     {
         watch_dog.attachShutdown(wtd_shut_down);
 
-        rtc.begin();
-        if (rtc.lostPower()) {
-            rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-        }
         stepper.setSpeed(7);
         
         display.begin();
@@ -120,7 +116,7 @@ class FED4 {
     RTCZero rtcZero;
     Adafruit_SharpMem display;
     Stepper stepper;
-    Adafruit_NeoPixel strip;
+    // Adafruit_NeoPixel strip;
 
     
     // ==== Pulbic Flags ====
@@ -197,7 +193,7 @@ class FED4 {
     std::function<bool()> checkOtherCondition = nullptr;
     
     bool checkFeedingWindow();
-    void setLightCue();
+    // void setLightCue();
 
     int getViCountDown();
     
@@ -239,6 +235,8 @@ class FED4 {
     volatile bool _interrupt_enabled = true;
     void start_interrupts();
     void pause_interrupts();
+
+    unsigned long _last_pellet_t;
     
     void left_poke_handler();
     void right_poke_handler();
@@ -257,7 +255,7 @@ class FED4 {
     
     // ==== Watch Dog ====
     WDTZero watch_dog;
-    uint32_t _wtd_timeout = WDT_SOFTCYCLE4M;
+    uint32_t _wtd_timeout = WDT_SOFTCYCLE2M;
     static void wtd_shut_down();
     void wtd_restart();
 };
