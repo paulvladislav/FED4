@@ -360,8 +360,8 @@ void FED4::initLogFile() {
     if (deviceNumber < 10) strcat(fileName, "0");
     strcat(fileName, String(deviceNumber).c_str());
     strcat(fileName, "-");
-    if (deviceNumber < 100) strcat(fileName, "0");
-    if (deviceNumber < 10) strcat(fileName, "0");
+    if (animal < 100) strcat(fileName, "0");
+    if (animal < 10) strcat(fileName, "0");
     strcat(fileName, String(animal).c_str());
     strcat(fileName, "_");
     if (now.day() < 10) strcat(fileName, "0");
@@ -375,7 +375,7 @@ void FED4::initLogFile() {
     strcat(fileName, "_");
     strcat(fileName, "01.csv");
     
-    // fed01-001_06-03-25_01.csv
+    // FED01-001_06-03-25_01.csv
     
     int fileIndex = 1;
     while (sd.exists(fileName))
