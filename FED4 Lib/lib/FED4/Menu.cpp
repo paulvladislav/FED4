@@ -183,7 +183,10 @@ void decreaseInt(MenuItem *item) {
     
     case IntType::UINT8: 
         *(uint8_t*)item->value -= *(uint8_t*)item->step;
-        if (*(uint8_t*)item->value < *(uint8_t*)item->minValue) {
+        if (
+            *(uint8_t*)item->value < *(uint8_t*)item->minValue
+            || *(uint8_t*)item->value == UINT8_MAX
+        ) {
             *(uint8_t*)item->value = *(uint8_t*)item->minValue;
         }
         break;
@@ -192,6 +195,16 @@ void decreaseInt(MenuItem *item) {
         *(int8_t*)item->value -= *(int8_t*)item->step;
         if (*(int8_t*)item->value < *(int8_t*)item->minValue) {
             *(int8_t*)item->value = *(int8_t*)item->minValue;
+        }
+        break;
+
+    case IntType::UINT16: 
+        *(uint16_t*)item->value -= *(uint16_t*)item->step;
+        if (
+            *(uint16_t*)item->value < *(uint16_t*)item->minValue
+            || *(uint16_t*)item->value == UINT16_MAX
+        ) {
+            *(uint16_t*)item->value = *(uint16_t*)item->minValue;
         }
         break;
     }
