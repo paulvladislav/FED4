@@ -757,7 +757,7 @@ void FED4::runConfigMenu() {
     Menu configMenu = Menu();
 
     configMenu.add("Time", new ClockMenu());
-    configMenu.add("Animal", &animal, 0, 99, 1);
+    configMenu.add("Animal", &animal, 0, 999, 1);
 
     const char* modes[] = {"FR", "VI", "%"};
     configMenu.add("Mode", &mode, modes, 3);
