@@ -238,7 +238,13 @@ void nextList(MenuItem *item) {
 }
 
 void previousList(MenuItem *item) {
-    uint newIdx = (*item->valueIdx - 1) % item->listLen;
+    uint newIdx;
+    if (*item->valueIdx == 0) {
+        newIdx = item->listLen - 1;
+    }
+    else {
+        newIdx = (*item->valueIdx - 1) % item->listLen;
+    }
     item->value = (void*)item->list[newIdx];
     *item->valueIdx = newIdx;
 }
