@@ -170,11 +170,12 @@ void FED4::feed(int pellets, bool wait) {
             else {
                 logError("Clogged or No Pellets");
                 _jam_error = true;
-                watch_dog.clear();
                 updateDisplay();
                 return;
             }
         }
+
+        watch_dog.clear();
 
         pelletsDispensed++;
         Event event = {
