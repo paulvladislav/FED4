@@ -130,7 +130,7 @@ public:
     uint16_t pelletsDispensed = 0;
     
     uint8_t deviceNumber = 0;
-    uint8_t animal = 0;
+    uint16_t animal = 0;
     uint8_t activeSensor = ActiveSensor::BOTH;
     uint8_t leftReward = 1;
     uint8_t rightReward = 1;

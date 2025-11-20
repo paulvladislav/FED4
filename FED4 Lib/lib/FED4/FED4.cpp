@@ -374,6 +374,10 @@ void FED4::initLogFile() {
     strcat(fileName, "FED");
     if (deviceNumber < 10) strcat(fileName, "0");
     strcat(fileName, String(deviceNumber).c_str());
+    strcat(fileName, "-");
+    if (animal < 100) strcat(fileName, "0");
+    if (animal < 10) strcat(fileName, "0");
+    strcat(fileName, String(animal).c_str());
     strcat(fileName, "_");
     if (now.day() < 10) strcat(fileName, "0");
     strcat(fileName, String(now.day()).c_str());
@@ -386,14 +390,14 @@ void FED4::initLogFile() {
     strcat(fileName, "_");
     strcat(fileName, "01.csv");
     
-    // fed1_06-03-25_01.csv
+    // FED01-001_06-03-25_01.csv
     
     int fileIndex = 1;
     while (sd.exists(fileName))
     {
         fileIndex++;
-        fileName[15] = '0' + fileIndex / 10;
-        fileName[16] = '0' + fileIndex % 10;
+        fileName[19] = '0' + fileIndex / 10;
+        fileName[20] = '0' + fileIndex % 10;
     }
     
     logFile.open(fileName, FILE_WRITE);
@@ -802,7 +806,7 @@ void FED4::runConfigMenu() {
     Menu configMenu = Menu();
 
     configMenu.add("Time", new ClockMenu());
-    configMenu.add("Animal", &animal, 0, 99, 1);
+    configMenu.add("Animal", &animal, 0, 999, 1);
 
     const char* modes[] = {"FR", "VI", "%", "\%FR"};
     configMenu.add("Mode", &mode, modes, 4);
