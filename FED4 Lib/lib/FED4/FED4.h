@@ -53,6 +53,7 @@ namespace Mode {
     constexpr int8_t FR      = 0;
     constexpr int8_t VI      = 1;
     constexpr int8_t CHANCE  = 2;
+    constexpr int8_t FR_PROB = 3;
     constexpr int8_t OTHER   = -1;
 };
 
@@ -85,7 +86,7 @@ namespace ErrorMsg {
 
 
 class FED4 {
-    public:
+public:
     static FED4* instance;  
     
     FED4() :
@@ -129,7 +130,7 @@ class FED4 {
     uint16_t pelletsDispensed = 0;
     
     uint8_t deviceNumber = 0;
-    uint8_t animal = 0;
+    uint16_t animal = 0;
     uint8_t activeSensor = ActiveSensor::BOTH;
     uint8_t leftReward = 1;
     uint8_t rightReward = 1;
@@ -184,12 +185,14 @@ class FED4 {
     void runFRMenu();
     void runVIMenu();
     void runChanceMenu();
+    void runProbFRMenu();
     std::function<void()> runOtherModeMenu = nullptr;
     
     bool checkCondition();
     bool checkFRCondition();
     bool checkVICondition();
     bool checkChanceCondition();
+    bool checkProbVICondition();
     std::function<bool()> checkOtherCondition = nullptr;
     
     bool checkFeedingWindow();
@@ -200,7 +203,7 @@ class FED4 {
     DateTime getDateTime();
     int getBatteryPercentage();
     
-    private:
+private:
     // ==== InternalFlags ====
     volatile bool _sleep_mode     = false;
     
@@ -222,6 +225,12 @@ class FED4 {
     
     // ==== Internal State ====
     int _reward;
+
+    // Mode Specific
+    bool* _trial_block = nullptr;
+    uint8_t _trial_block_len;
+    uint8_t _trial_idx;
+    void generate_trial_block();
     
     // Log Memory
     size_t _log_buffer_pos = 0;

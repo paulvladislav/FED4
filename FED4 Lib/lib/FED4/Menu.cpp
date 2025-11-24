@@ -47,8 +47,13 @@ MenuItem::MenuItem(const char* name, uint8_t* value, uint8_t min, uint8_t max, u
 }
 
 MenuItem::MenuItem(const char* name, int8_t* value, int8_t min, int8_t max, int8_t step) :
-    MenuItem::MenuItem(name, (int*)value, (int)min, (int)max, (int)step) {
+MenuItem::MenuItem(name, (int*)value, (int)min, (int)max, (int)step) {
     intType = IntType::INT8;
+}
+
+MenuItem::MenuItem(const char* name, uint16_t* value, uint16_t min, uint16_t max, uint16_t step) :
+    MenuItem::MenuItem(name, (int*)value, (int)min, (int)max, (int)step) {
+    intType = IntType::UINT16;
 }
 
 MenuItem::MenuItem(const char* name, int* value, int min, int max, int step) {
@@ -156,6 +161,13 @@ void increaseInt(MenuItem *item) {
             *(int8_t*)item->value = *(int8_t*)item->maxValue;
         }
         break;
+
+    case IntType::UINT16: 
+        *(uint16_t*)item->value += *(uint16_t*)item->step;
+        if (*(uint16_t*)item->value > *(uint16_t*)item->maxValue) {
+            *(uint16_t*)item->value = *(uint16_t*)item->maxValue;
+        }
+        break;
     }
 }
 
@@ -171,7 +183,10 @@ void decreaseInt(MenuItem *item) {
     
     case IntType::UINT8: 
         *(uint8_t*)item->value -= *(uint8_t*)item->step;
-        if (*(uint8_t*)item->value < *(uint8_t*)item->minValue) {
+        if (
+            *(uint8_t*)item->value < *(uint8_t*)item->minValue
+            || *(uint8_t*)item->value == UINT8_MAX
+        ) {
             *(uint8_t*)item->value = *(uint8_t*)item->minValue;
         }
         break;
@@ -180,6 +195,16 @@ void decreaseInt(MenuItem *item) {
         *(int8_t*)item->value -= *(int8_t*)item->step;
         if (*(int8_t*)item->value < *(int8_t*)item->minValue) {
             *(int8_t*)item->value = *(int8_t*)item->minValue;
+        }
+        break;
+
+    case IntType::UINT16: 
+        *(uint16_t*)item->value -= *(uint16_t*)item->step;
+        if (
+            *(uint16_t*)item->value < *(uint16_t*)item->minValue
+            || *(uint16_t*)item->value == UINT16_MAX
+        ) {
+            *(uint16_t*)item->value = *(uint16_t*)item->minValue;
         }
         break;
     }
@@ -213,7 +238,13 @@ void nextList(MenuItem *item) {
 }
 
 void previousList(MenuItem *item) {
-    uint newIdx = (*item->valueIdx - 1) % item->listLen;
+    uint newIdx;
+    if (*item->valueIdx == 0) {
+        newIdx = item->listLen - 1;
+    }
+    else {
+        newIdx = (*item->valueIdx - 1) % item->listLen;
+    }
     item->value = (void*)item->list[newIdx];
     *item->valueIdx = newIdx;
 }
@@ -360,6 +391,12 @@ void printValue(MenuItem* item) {
 
         case IntType::INT8: {
             int8_t value = *(int8_t*)item->value;
+            menu_display->print(value);
+            break;
+        }
+        
+        case IntType::UINT16: {
+            uint16_t value = *(uint16_t*)item->value;
             menu_display->print(value);
             break;
         }
@@ -679,6 +716,11 @@ void Menu::add(const char* name, uint8_t*value, uint8_t min, uint8_t max, uint8_
 }
 
 void Menu::add(const char* name, int8_t*value, int8_t min, int8_t max, int8_t step) {
+    MenuItem* newItem = new MenuItem(name, value, min, max, step);
+    add(newItem);
+}
+
+void Menu::add(const char* name, uint16_t*value, uint16_t min, uint16_t max, uint16_t step) {
     MenuItem* newItem = new MenuItem(name, value, min, max, step);
     add(newItem);
 }

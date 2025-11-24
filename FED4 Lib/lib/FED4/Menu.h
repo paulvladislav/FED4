@@ -31,9 +31,10 @@ typedef enum {
 } ItemType;
 
 typedef enum {
-    INT32,
     UINT8,
-    INT8
+    INT8,
+    UINT16,
+    INT32,
 } IntType;
 
 typedef enum {
@@ -47,6 +48,7 @@ typedef struct Menu Menu;
 typedef struct MenuItem {
     MenuItem(const char* name, uint8_t*value, uint8_t min, uint8_t max, uint8_t step);
     MenuItem(const char* name, int8_t*value, int8_t min, int8_t max, int8_t step);
+    MenuItem(const char* name, uint16_t*value, uint16_t min, uint16_t max, uint16_t step);
     MenuItem(const char* name, int* value, int min, int max, int step);
     MenuItem(const char* name, float* value, float min, float max, float step);
     MenuItem(const char* name, bool* value);
@@ -97,6 +99,7 @@ typedef struct Menu {
 
     void add(const char* name, uint8_t*value, uint8_t min, uint8_t max, uint8_t step);
     void add(const char* name, int8_t*value, int8_t min, int8_t max, int8_t step);
+    void add(const char* name, uint16_t*value, uint16_t min, uint16_t max, uint16_t step);
     void add(const char* name, int* value, int min, int max, int step);
     void add(const char* name, float* value, float min, float max, float step);
     void add(const char* name, bool* value);
