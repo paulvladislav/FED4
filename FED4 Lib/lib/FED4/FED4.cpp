@@ -110,6 +110,10 @@ void FED4::begin() {
     }
 
     initLogFile();
+
+    trialBlock = TrialBlock(chance);
+    leftTrialBlock = TrialBlock(left_chance);
+    rightTrialBlock = TrialBlock(right_chance);
     
     saveConfig();
     displayLayout();
@@ -856,10 +860,10 @@ void FED4::runChanceMenu() {
     ignorePokes = true;
 
     Menu chanceMenu = Menu();
-    chanceMenu.add("Chance", &left_chance, 0.0, 1.0, 0.05);
+    chanceMenu.add("Chance", &chance, 0.0, 1.0, 0.05);
     chanceMenu.run();
 
-    right_chance = left_chance;
+    trialBlock = TrialBlock(chance);
 
     ignorePokes = false;
 }
@@ -869,10 +873,8 @@ void FED4::runProbFRMenu() {
 
     Menu probFRMenu = Menu();
     probFRMenu.add("Ratio", &ratio, 1, 10, 1);
-    probFRMenu.add("Chance", &left_chance, 0.0, 1.0, 0.05);
+    probFRMenu.add("Chance", &chance, 0.0, 1.0, 0.05);
     probFRMenu.run();
-
-    right_chance = left_chance;
 
     ignorePokes = false;
 }
@@ -1029,42 +1031,27 @@ bool FED4::checkVICondition() {
     return false;
 }
 
-bool FED4::checkChanceCondition() {
-    if (
-        _trial_block_left == nullptr
-        || _trial_idx >= _trial_block_len
-    ) {
-        generate_trial_block(left_chance);
-    }
-
+bool FED4::checkChanceCondition() { 
     bool conditionMet = false;
 
     switch (activeSensor) {
     case ActiveSensor::BOTH:
-        if (getLeftPoke()) {
-            conditionMet = _trial_block_left[_trial_idx];
-            _trial_idx++;
+        if (getLeftPoke() || getRightPoke()) {
+            conditionMet = trialBlock.getTrialResult();
             _reward = leftReward;
-        }
-        if (getRightPoke()) {
-            conditionMet = _trial_block_left[_trial_idx];
-            _trial_idx++;
-            _reward = rightReward;
         }
         break;
         
         case ActiveSensor::LEFT:
         if (getLeftPoke()) {
-            conditionMet = _trial_block_left[_trial_idx];
-            _trial_idx++;
+            conditionMet = trialBlock.getTrialResult();
             _reward = leftReward;
         }
         break;
         
         case ActiveSensor::RIGHT:
         if (getRightPoke()) {
-            conditionMet = _trial_block_left[_trial_idx];
-            _trial_idx++;
+            conditionMet = trialBlock.getTrialResult();
             _reward = rightReward;
         }
         break;
@@ -1074,14 +1061,21 @@ bool FED4::checkChanceCondition() {
 }
 
 bool FED4::checkLocalProbFRCondition() {
-    if ()
-
     bool conditionMet = false;
     bool pokedLeft = _left_poke;
     bool pokedRight = _right_poke;
     if (checkFRCondition()) {
-        if (pokedLeft)
+        if (pokedLeft) {
+            conditionMet = leftTrialBlock.getTrialResult();
+            _reward = leftReward;
+        }
+        if (pokedRight) {
+            conditionMet = rightTrialBlock.getTrialResult();
+            _reward = rightReward;
+        }
     }
+
+    return conditionMet;
 }
 
 bool FED4::checkFeedingWindow() {
@@ -1626,6 +1620,6 @@ bool TrialBlock::getTrialResult() {
 
     bool result = trials[idx];
     idx++;
-    
+
     return result;
 } 

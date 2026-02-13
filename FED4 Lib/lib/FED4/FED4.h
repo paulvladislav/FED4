@@ -87,6 +87,7 @@ namespace ErrorMsg {
 
 class TrialBlock {
 public:
+    TrialBlock() : chance(0.5){}
     TrialBlock(float chance) : chance(chance){}
 
     void generateBlock();
@@ -162,6 +163,7 @@ public:
     uint16_t viCountDown = 0;
     uint32_t feedUnixT = 0;
     bool viSet = false;
+    float chance = 0.5;
     float left_chance = 0.5;
     float right_chance = 0.5;
     
@@ -243,13 +245,9 @@ private:
     int _reward;
 
     // Mode Specific
-    bool* _trial_block_left = nullptr;
-    bool* _trial_block_right = nullptr;
-    uint8_t _trial_block_len_l;
-    uint8_t _trial_block_len_r;
-    uint8_t _trial_idx_l;
-    uint8_t _trial_idx_r;
-    void generate_trial_block(float chance, bool);
+    TrialBlock trialBlock;
+    TrialBlock leftTrialBlock;
+    TrialBlock rightTrialBlock;
     
     // Log Memory
     size_t _log_buffer_pos = 0;
