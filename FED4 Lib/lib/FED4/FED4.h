@@ -95,7 +95,7 @@ public:
 
 private:
     float chance;
-    bool* trials;
+    bool* trials = nullptr;
     uint8_t len;
     uint8_t idx;
 };

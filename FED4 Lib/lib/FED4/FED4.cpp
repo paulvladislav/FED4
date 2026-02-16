@@ -237,6 +237,11 @@ void FED4::loadConfig() {
         mode = Mode::FR_PROB;
         ratio = config["mode"]["ratio"];
         chance = config["mode"]["chance"];
+    } else if (config["mode"]["name"] == "LFR_PROB") {
+        mode = Mode::LFR_PROB;
+        ratio = config["mode"]["ratio"];
+        left_chance = config["mode"]["l_chance"];
+        right_chance = config["mode"]["r_chance"];
     }
 
     if (config["active sensor"] == "left") {
@@ -274,23 +279,30 @@ void FED4::saveConfig() {
         config["mode"]["ratio"] = ratio;
         break;
         
-        case Mode::VI:
+    case Mode::VI:
         config["mode"]["name"] = "VI";
         config["mode"]["avg"] = viAvg;
         config["mode"]["spread"] = viSpread;
         break;
         
-        case Mode::CHANCE:
+    case Mode::CHANCE:
         config["mode"]["name"] = "CHANCE";
-        config["mode"]["chance"] = left_chance;
+        config["mode"]["chance"] = chance;
         break;
 
-        case Mode::FR_PROB:
+    case Mode::FR_PROB:
         config["mode"]["name"] = "FR_PROB";
         config["mode"]["ratio"] = ratio;
-        config["mode"]["chance"] = left_chance;
+        config["mode"]["chance"] = chance;
         break;
-    
+
+    case Mode::LFR_PROB:
+        config["mode"]["name"] = "LFR_PROB";
+        config["mode"]["ratio"] = ratio;
+        config["mode"]["l_chance"] = left_chance;
+        config["mode"]["r_chance"] = right_chance;
+        break;
+        
     default:
         break;
     }
@@ -445,7 +457,14 @@ void FED4::initLogFile() {
     case Mode::FR_PROB:
         strcat(header, ",Ratio");
         strcat(header, ",Chance");
-    
+        break;
+
+    case Mode::LFR_PROB:
+        strcat(header, ",Ratio");
+        strcat(header, ",L Chance");
+        strcat(header, ",R Chance");
+        break;
+
     default:
         break;
     }
@@ -495,7 +514,11 @@ void FED4::logEvent(Event e) {
         break;
 
     case Mode::FR_PROB:
-        sprintf(mode_str, "VI PROB");
+        sprintf(mode_str, "FR PROB");
+        break;
+        
+        case Mode::LFR_PROB:
+        sprintf(mode_str, "LOCAL FR PROB");
         break;
 
     default :
@@ -606,10 +629,17 @@ void FED4::logEvent(Event e) {
         break;
 
     case Mode::FR_PROB:
-        char viProb_str[16];
-        sprintf(viProb_str, "%d,%.2f", ratio, left_chance);
+        char frProb_str[16];
+        sprintf(frProb_str, "%d,%.2f", ratio, chance);
         strcat(row, ",");
-        strcat(row, viProb_str);
+        strcat(row, frProb_str);
+        break;
+
+    case Mode::LFR_PROB:
+        char lfrProb_str[24];
+        sprintf(lfrProb_str, "%d,%.2f,%.2f", ratio, left_chance, right_chance);
+        strcat(row, ",");
+        strcat(row, lfrProb_str);
         break;
     
     default:
@@ -691,6 +721,10 @@ void FED4::displayLayout() {
 
     case Mode::FR_PROB:
         display.print("Probabilistic FR");
+        break;
+
+    case Mode::LFR_PROB:
+        display.print("Local Prob FR");
         break;
     
     default:
@@ -816,8 +850,8 @@ void FED4::runConfigMenu() {
     configMenu.add("Time", new ClockMenu());
     configMenu.add("Animal", &animal, 0, 999, 1);
 
-    const char* modes[] = {"FR", "VI", "%", "\%FR"};
-    configMenu.add("Mode", &mode, modes, 4);
+    const char* modes[] = {"FR", "VI", "%", "\%FR", "L\%FR"};
+    configMenu.add("Mode", &mode, modes, 5);
 
     const char* sensors[] = {"L", "R", "L&R"};
     configMenu.add("Sensor", &activeSensor, sensors, 3);
@@ -1613,7 +1647,7 @@ void TrialBlock::generateBlock() {
 bool TrialBlock::getTrialResult() {
     if (
         trials == nullptr
-        || idx > len
+        || idx >= len
     ) {
         this->generateBlock();
     }
