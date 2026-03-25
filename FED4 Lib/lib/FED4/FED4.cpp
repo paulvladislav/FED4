@@ -856,8 +856,8 @@ void FED4::runConfigMenu() {
     const char* sensors[] = {"L", "R", "L&R"};
     configMenu.add("Sensor", &activeSensor, sensors, 3);
 
-    configMenu.add("L Rew", &leftReward, 0, 255, 1);
-    configMenu.add("R Rew", &rightReward, 0, 255, 1);
+    configMenu.add("L Rew", &leftReward, 1, 255, 1);
+    configMenu.add("R Rew", &rightReward, 1, 255, 1);
 
     configMenu.add("Rew Win", &feedWindow);
     configMenu.add("Rew Beg", &windowStart, 0, 23, 1);
@@ -1101,11 +1101,9 @@ bool FED4::checkLocalProbFRCondition() {
     if (checkFRCondition()) {
         if (pokedLeft) {
             conditionMet = leftTrialBlock.getTrialResult();
-            _reward = leftReward;
         }
         if (pokedRight) {
             conditionMet = rightTrialBlock.getTrialResult();
-            _reward = rightReward;
         }
     }
 
@@ -1487,6 +1485,8 @@ void  FED4::wtd_restart() {
 
     watch_dog.setup(_wtd_timeout);
 
+    loadConfig();
+
     FatFile root;
     root.open("/", O_READ);
     root.rewind();
@@ -1611,6 +1611,10 @@ void  FED4::wtd_restart() {
     };
     logEvent(event);
     flush_to_sd();
+
+    trialBlock = TrialBlock(chance);
+    leftTrialBlock = TrialBlock(left_chance);
+    rightTrialBlock = TrialBlock(right_chance);
 
     start_interrupts();
 }
