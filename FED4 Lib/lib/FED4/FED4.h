@@ -50,11 +50,12 @@ namespace FED4Pins {
 }
 
 namespace Mode {
-    constexpr int8_t FR      = 0;
-    constexpr int8_t VI      = 1;
-    constexpr int8_t CHANCE  = 2;
-    constexpr int8_t FR_PROB = 3;
-    constexpr int8_t OTHER   = -1;
+    constexpr int8_t FR       = 0;
+    constexpr int8_t VI       = 1;
+    constexpr int8_t CHANCE   = 2;
+    constexpr int8_t FR_PROB  = 3;
+    constexpr int8_t LFR_PROB = 4;
+    constexpr int8_t OTHER    = -1;
 };
 
 namespace ActiveSensor {
@@ -84,6 +85,20 @@ namespace ErrorMsg {
     constexpr const char* JAM = "JAM OR NO PELLETS"; 
 }
 
+class TrialBlock {
+public:
+    TrialBlock() : chance(0.5){}
+    TrialBlock(float chance) : chance(chance){}
+
+    void generateBlock();
+    bool getTrialResult();
+
+private:
+    float chance;
+    bool* trials = nullptr;
+    uint8_t len;
+    uint8_t idx;
+};
 
 class FED4 {
 public:
@@ -149,6 +164,8 @@ public:
     uint32_t feedUnixT = 0;
     bool viSet = false;
     float chance = 0.5;
+    float left_chance = 0.5;
+    float right_chance = 0.5;
     
     
     // ==== API ====
@@ -186,13 +203,14 @@ public:
     void runVIMenu();
     void runChanceMenu();
     void runProbFRMenu();
+    void runLocalProbFRMenu();
     std::function<void()> runOtherModeMenu = nullptr;
     
     bool checkCondition();
     bool checkFRCondition();
     bool checkVICondition();
     bool checkChanceCondition();
-    bool checkProbVICondition();
+    bool checkLocalProbFRCondition();
     std::function<bool()> checkOtherCondition = nullptr;
     
     bool checkFeedingWindow();
@@ -227,10 +245,9 @@ private:
     int _reward;
 
     // Mode Specific
-    bool* _trial_block = nullptr;
-    uint8_t _trial_block_len;
-    uint8_t _trial_idx;
-    void generate_trial_block();
+    TrialBlock trialBlock;
+    TrialBlock leftTrialBlock;
+    TrialBlock rightTrialBlock;
     
     // Log Memory
     size_t _log_buffer_pos = 0;

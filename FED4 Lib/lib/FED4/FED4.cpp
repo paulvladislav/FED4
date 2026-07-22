@@ -99,6 +99,9 @@ void FED4::begin() {
     case Mode::FR_PROB:
         runProbFRMenu();
         break;
+    case Mode::LFR_PROB:
+        runLocalProbFRMenu();
+        break;
     case Mode::OTHER:
         runOtherModeMenu();
         break;
@@ -107,6 +110,10 @@ void FED4::begin() {
     }
 
     initLogFile();
+
+    trialBlock = TrialBlock(chance);
+    leftTrialBlock = TrialBlock(left_chance);
+    rightTrialBlock = TrialBlock(right_chance);
     
     saveConfig();
     displayLayout();
@@ -230,6 +237,11 @@ void FED4::loadConfig() {
         mode = Mode::FR_PROB;
         ratio = config["mode"]["ratio"];
         chance = config["mode"]["chance"];
+    } else if (config["mode"]["name"] == "LFR_PROB") {
+        mode = Mode::LFR_PROB;
+        ratio = config["mode"]["ratio"];
+        left_chance = config["mode"]["l_chance"];
+        right_chance = config["mode"]["r_chance"];
     }
 
     if (config["active sensor"] == "left") {
@@ -267,23 +279,30 @@ void FED4::saveConfig() {
         config["mode"]["ratio"] = ratio;
         break;
         
-        case Mode::VI:
+    case Mode::VI:
         config["mode"]["name"] = "VI";
         config["mode"]["avg"] = viAvg;
         config["mode"]["spread"] = viSpread;
         break;
         
-        case Mode::CHANCE:
+    case Mode::CHANCE:
         config["mode"]["name"] = "CHANCE";
         config["mode"]["chance"] = chance;
         break;
 
-        case Mode::FR_PROB:
+    case Mode::FR_PROB:
         config["mode"]["name"] = "FR_PROB";
         config["mode"]["ratio"] = ratio;
         config["mode"]["chance"] = chance;
         break;
-    
+
+    case Mode::LFR_PROB:
+        config["mode"]["name"] = "LFR_PROB";
+        config["mode"]["ratio"] = ratio;
+        config["mode"]["l_chance"] = left_chance;
+        config["mode"]["r_chance"] = right_chance;
+        break;
+        
     default:
         break;
     }
@@ -438,7 +457,14 @@ void FED4::initLogFile() {
     case Mode::FR_PROB:
         strcat(header, ",Ratio");
         strcat(header, ",Chance");
-    
+        break;
+
+    case Mode::LFR_PROB:
+        strcat(header, ",Ratio");
+        strcat(header, ",L Chance");
+        strcat(header, ",R Chance");
+        break;
+
     default:
         break;
     }
@@ -488,7 +514,11 @@ void FED4::logEvent(Event e) {
         break;
 
     case Mode::FR_PROB:
-        sprintf(mode_str, "VI PROB");
+        sprintf(mode_str, "FR PROB");
+        break;
+        
+        case Mode::LFR_PROB:
+        sprintf(mode_str, "LOCAL FR PROB");
         break;
 
     default :
@@ -599,10 +629,17 @@ void FED4::logEvent(Event e) {
         break;
 
     case Mode::FR_PROB:
-        char viProb_str[16];
-        sprintf(viProb_str, "%d,%.2f", ratio, chance);
+        char frProb_str[16];
+        sprintf(frProb_str, "%d,%.2f", ratio, chance);
         strcat(row, ",");
-        strcat(row, viProb_str);
+        strcat(row, frProb_str);
+        break;
+
+    case Mode::LFR_PROB:
+        char lfrProb_str[24];
+        sprintf(lfrProb_str, "%d,%.2f,%.2f", ratio, left_chance, right_chance);
+        strcat(row, ",");
+        strcat(row, lfrProb_str);
         break;
     
     default:
@@ -684,6 +721,10 @@ void FED4::displayLayout() {
 
     case Mode::FR_PROB:
         display.print("Probabilistic FR");
+        break;
+
+    case Mode::LFR_PROB:
+        display.print("Local Prob FR");
         break;
     
     default:
@@ -809,14 +850,14 @@ void FED4::runConfigMenu() {
     configMenu.add("Time", new ClockMenu());
     configMenu.add("Animal", &animal, 0, 999, 1);
 
-    const char* modes[] = {"FR", "VI", "%", "\%FR"};
-    configMenu.add("Mode", &mode, modes, 4);
+    const char* modes[] = {"FR", "VI", "%", "\%FR", "L\%FR"};
+    configMenu.add("Mode", &mode, modes, 5);
 
     const char* sensors[] = {"L", "R", "L&R"};
     configMenu.add("Sensor", &activeSensor, sensors, 3);
 
-    configMenu.add("L Rew", &leftReward, 0, 255, 1);
-    configMenu.add("R Rew", &rightReward, 0, 255, 1);
+    configMenu.add("L Rew", &leftReward, 1, 255, 1);
+    configMenu.add("R Rew", &rightReward, 1, 255, 1);
 
     configMenu.add("Rew Win", &feedWindow);
     configMenu.add("Rew Beg", &windowStart, 0, 23, 1);
@@ -856,6 +897,8 @@ void FED4::runChanceMenu() {
     chanceMenu.add("Chance", &chance, 0.0, 1.0, 0.05);
     chanceMenu.run();
 
+    trialBlock = TrialBlock(chance);
+
     ignorePokes = false;
 }
 
@@ -866,6 +909,18 @@ void FED4::runProbFRMenu() {
     probFRMenu.add("Ratio", &ratio, 1, 10, 1);
     probFRMenu.add("Chance", &chance, 0.0, 1.0, 0.05);
     probFRMenu.run();
+
+    ignorePokes = false;
+}
+
+void FED4::runLocalProbFRMenu() {
+    ignorePokes = true;
+
+    Menu localProbFrMenu = Menu();
+    localProbFrMenu.add("Ratio", &ratio, 1, 10, 1);
+    localProbFrMenu.add("L Prob", &left_chance, 0.0, 1.0, 0.05);
+    localProbFrMenu.add("R Prob", &right_chance, 0.0, 1.0, 0.05);
+    localProbFrMenu.run();
 
     ignorePokes = false;
 }
@@ -898,6 +953,11 @@ bool FED4::checkCondition() {
             _right_poke = pokedRight;
             conditionMet = checkChanceCondition();
         }
+        break;
+    }
+
+    case Mode::LFR_PROB: {
+        conditionMet = checkLocalProbFRCondition();
         break;
     }
     
@@ -1005,47 +1065,48 @@ bool FED4::checkVICondition() {
     return false;
 }
 
-bool FED4::checkChanceCondition() {
-    if (
-        _trial_block == nullptr
-        || _trial_idx >= _trial_block_len
-    ) {
-        generate_trial_block();
-    }
-
+bool FED4::checkChanceCondition() { 
     bool conditionMet = false;
 
     switch (activeSensor) {
     case ActiveSensor::BOTH:
-        if (getLeftPoke()) {
-            conditionMet = _trial_block[_trial_idx];
-            _trial_idx++;
+        if (getLeftPoke() || getRightPoke()) {
+            conditionMet = trialBlock.getTrialResult();
             _reward = leftReward;
-        }
-        if (getRightPoke()) {
-            conditionMet = _trial_block[_trial_idx];
-            _trial_idx++;
-            _reward = rightReward;
         }
         break;
         
         case ActiveSensor::LEFT:
         if (getLeftPoke()) {
-            conditionMet = _trial_block[_trial_idx];
-            _trial_idx++;
+            conditionMet = trialBlock.getTrialResult();
             _reward = leftReward;
         }
         break;
         
         case ActiveSensor::RIGHT:
         if (getRightPoke()) {
-            conditionMet = _trial_block[_trial_idx];
-            _trial_idx++;
+            conditionMet = trialBlock.getTrialResult();
             _reward = rightReward;
         }
         break;
     }
     
+    return conditionMet;
+}
+
+bool FED4::checkLocalProbFRCondition() {
+    bool conditionMet = false;
+    bool pokedLeft = _left_poke;
+    bool pokedRight = _right_poke;
+    if (checkFRCondition()) {
+        if (pokedLeft) {
+            conditionMet = leftTrialBlock.getTrialResult();
+        }
+        if (pokedRight) {
+            conditionMet = rightTrialBlock.getTrialResult();
+        }
+    }
+
     return conditionMet;
 }
 
@@ -1073,35 +1134,6 @@ bool FED4::checkFeedingWindow() {
     }
 
     return false;
-}
-
-void FED4::generate_trial_block() {
-    if (_trial_block != nullptr) {
-        delete[] _trial_block;
-    }
-
-    int int_chance = (int)round(chance * 100);
-    int gcd = int_chance;
-    int n = 100;
-    while (n != 0) {
-        int t = n;
-        n = gcd % n;
-        gcd = t;
-    }
-
-    _trial_block_len = 100 / gcd;
-    _trial_block = new bool[_trial_block_len]{0};
-    _trial_idx = 0;
-
-    int n_rewardedTrials = int_chance / gcd;
-
-    for (uint8_t i = 0; i < n_rewardedTrials; i++) {
-        uint8_t rewardedTrial_idx = random(0, _trial_block_len);
-        while (_trial_block[rewardedTrial_idx] == true) {
-            rewardedTrial_idx = (rewardedTrial_idx + 1) % _trial_block_len; 
-        }
-        _trial_block[rewardedTrial_idx] = true;
-    }
 }
 
 // void FED4::setLightCue() {
@@ -1453,6 +1485,8 @@ void  FED4::wtd_restart() {
 
     watch_dog.setup(_wtd_timeout);
 
+    loadConfig();
+
     FatFile root;
     root.open("/", O_READ);
     root.rewind();
@@ -1578,5 +1612,52 @@ void  FED4::wtd_restart() {
     logEvent(event);
     flush_to_sd();
 
+    trialBlock = TrialBlock(chance);
+    leftTrialBlock = TrialBlock(left_chance);
+    rightTrialBlock = TrialBlock(right_chance);
+
     start_interrupts();
 }
+
+void TrialBlock::generateBlock() {
+    if (trials != nullptr) {
+        delete[] trials;
+    }
+
+    int int_chance = (int)round(chance * 100);
+    int gcd = int_chance;
+    int n = 100;
+    while (n != 0) {
+        int t = n;
+        n = gcd % n;
+        gcd = t;
+    }
+
+    len = 100 / gcd;
+    trials = new bool[len]{0};
+    idx = 0;
+
+    int n_rewardedTrials = int_chance / gcd;
+
+    for (uint8_t i = 0; i < n_rewardedTrials; i++) {
+        uint8_t rewardedTrial_idx = random(0, len);
+        while (trials[rewardedTrial_idx] == true) {
+            rewardedTrial_idx = (rewardedTrial_idx + 1) % len; 
+        }
+        trials[rewardedTrial_idx] = true;
+    }
+}
+
+bool TrialBlock::getTrialResult() {
+    if (
+        trials == nullptr
+        || idx >= len
+    ) {
+        this->generateBlock();
+    }
+
+    bool result = trials[idx];
+    idx++;
+
+    return result;
+} 
