@@ -130,7 +130,7 @@ void FED4::run() {
         feed(_reward);
     }
     
-    if (!checkFeedingWindow()) {
+    if (!(checkFeedingWindow() || viSet)) {
         sleep();
     }
 
@@ -937,7 +937,7 @@ bool FED4::checkCondition() {
         break;
 
     case Mode::VI:
-        conditionMet = checkVICondition();
+        conditionMet = newcheckVICondition();
         break;
     
     case Mode::CHANCE:
@@ -1003,6 +1003,73 @@ bool FED4::checkFRCondition() {
         break;
     }
     
+    return conditionMet;
+}
+
+bool FED4::newcheckVICondition() {
+    
+    if (viSet) {
+        if (viCountDown == 0) {
+            viSet = false;
+            viCountDown = 0;
+        }
+        else if (viCountDown < 0) {
+            viCountDown = getViCountDown();
+
+            Event e = Event {
+                .time = getDateTime(),
+                .message = EventMsg::SET_VI
+            };
+            logEvent(e);
+
+            feedUnixT = getDateTime().unixtime() + viCountDown;
+
+            return false;
+        }
+        else {
+            viCountDown  = (int)(feedUnixT - getDateTime().unixtime());
+            if (viCountDown < 0) viCountDown = 0;
+            getLeftPoke();
+            getRightPoke();
+            return false;
+        }
+    }
+    
+    bool conditionMet = false;
+    bool pokedLeft = getLeftPoke();
+    bool pokedRight = getRightPoke();
+
+    switch (activeSensor) {
+    case ActiveSensor::BOTH:
+        if (pokedLeft || pokedRight) {
+            conditionMet = true;
+        }
+        break;
+    
+    case ActiveSensor::LEFT:
+        if (pokedLeft) {
+            conditionMet = true;
+        }
+        break;
+
+    case ActiveSensor::RIGHT:
+        if (pokedRight) {
+            conditionMet = true;
+        }
+    }
+
+    if (conditionMet) {
+        if (pokedLeft) {
+            _reward = leftReward;
+        }
+        else if (pokedRight) {
+            _reward = rightReward;
+        }
+
+        viSet = true;
+        viCountDown = -1;
+    }
+
     return conditionMet;
 }
 
