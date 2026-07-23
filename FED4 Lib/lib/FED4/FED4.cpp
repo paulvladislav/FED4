@@ -610,7 +610,12 @@ void FED4::logEvent(Event e) {
     switch (mode) {
     case Mode::VI:
         char viCountDown_str[10];
-        sprintf(viCountDown_str, "%d", viCountDown);
+        if (viCountDown < 0) {
+            sprintf(viCountDown_str, "%d", 0);
+        }
+        else {
+            sprintf(viCountDown_str, "%d", viCountDown);
+        }
         strcat(row, ",");
         strcat(row, viCountDown_str);
         break;
