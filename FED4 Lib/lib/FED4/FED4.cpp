@@ -942,7 +942,7 @@ bool FED4::checkCondition() {
         break;
 
     case Mode::VI:
-        conditionMet = newcheckVICondition();
+        conditionMet = checkVICondition();
         break;
     
     case Mode::CHANCE:
@@ -1011,7 +1011,7 @@ bool FED4::checkFRCondition() {
     return conditionMet;
 }
 
-bool FED4::newcheckVICondition() {
+bool FED4::checkVICondition() {
     
     if (viSet) {
         if (viCountDown == 0) {
@@ -1076,65 +1076,6 @@ bool FED4::newcheckVICondition() {
     }
 
     return conditionMet;
-}
-
-bool FED4::checkVICondition() {
-    if (viSet) {
-        if (viCountDown <= 0) {
-            viSet = false;
-            viCountDown = 0;
-            return true;
-        }
-        else {
-            viCountDown  = (int)(feedUnixT - getDateTime().unixtime());
-        }
-    }
-    else {
-        bool pokedLeft = getLeftPoke();
-        bool pokedRight = getRightPoke();
-
-        bool conditionMet = false;
-        switch (activeSensor) {
-        case ActiveSensor::BOTH:
-            if (pokedLeft || pokedRight) {
-                conditionMet = true;
-            }
-            break;
-        
-        case ActiveSensor::LEFT:
-            if (pokedLeft) {
-                conditionMet = true;
-            }
-            break;
-
-        case ActiveSensor::RIGHT:
-            if (pokedRight) {
-                conditionMet = true;
-            }
-        }
-
-        if (conditionMet) {
-            viCountDown = getViCountDown();
-            viSet = true;
-
-            if (pokedLeft) {
-                _reward = leftReward;
-            }
-            else if (pokedRight) {
-                _reward = rightReward;
-            }
-
-            Event e = Event {
-                .time = getDateTime(),
-                .message = EventMsg::SET_VI
-            };
-            logEvent(e);
-
-            feedUnixT = getDateTime().unixtime() + viCountDown;
-        }
-    }
-
-    return false;
 }
 
 bool FED4::checkChanceCondition() { 

@@ -209,7 +209,6 @@ public:
     bool checkCondition();
     bool checkFRCondition();
     bool checkVICondition();
-    bool newcheckVICondition();
     bool checkChanceCondition();
     bool checkLocalProbFRCondition();
     std::function<bool()> checkOtherCondition = nullptr;
