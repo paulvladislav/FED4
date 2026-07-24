@@ -160,7 +160,7 @@ public:
     uint8_t ratio = 1;
     uint8_t viAvg = 30;
     float viSpread = 0.75;
-    uint16_t viCountDown = 0;
+    int16_t viCountDown = 0;
     uint32_t feedUnixT = 0;
     bool viSet = false;
     float chance = 0.5;
